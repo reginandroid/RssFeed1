@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +29,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.annotation.Nonnull;
+
 
 public class MainActivity extends AppCompatActivity  {
     private static final String TAG_TITLE = "title";
@@ -36,7 +40,7 @@ public class MainActivity extends AppCompatActivity  {
     private static final String TAG_URL = "url";
 
     Context ctx;
-    private List<NewsItem> newsFeed = new ArrayList<NewsItem>();
+    private List<NewsItem> newsFeed = new ArrayList<>();
     CustomAdapter adapter;
     ListView lv;
 
@@ -68,7 +72,7 @@ public class MainActivity extends AppCompatActivity  {
                         String author = item.getString(TAG_AUTHOR);
                         String dateTime = item.getString(TAG_PUBLISHEDAT);
                         String url = item.getString(TAG_URL);
-Log.e("my", title+ " " + description + " " + author + " " + dateTime+ " "+url);
+                        Log.e("my", title+ " " + description + " " + author + " " + dateTime+ " "+url);
 
 
 
@@ -115,12 +119,14 @@ Log.e("my", title+ " " + description + " " + author + " " + dateTime+ " "+url);
     }
 
     public class CustomAdapter extends ArrayAdapter<NewsItem> {
-       public CustomAdapter() {
+        private CustomAdapter() {
 
-           super(MainActivity.this, R.layout.item_list, newsFeed);
+            super(MainActivity.this, R.layout.item_list, newsFeed);
         }
 
         @Override
+        @NonNull
+        @SuppressWarnings("NullableProblems")
         public View getView(int position, View convertView, ViewGroup parent)  {
             MyViewHolder mViewHolder;
             if (convertView == null) {
@@ -137,29 +143,29 @@ Log.e("my", title+ " " + description + " " + author + " " + dateTime+ " "+url);
             mViewHolder.desc.setText(currentItem.getNewsDescSmall());
             mViewHolder.author.setText(currentItem.getAuthor());
             mViewHolder.date.setText(currentItem.getDateTime());
-           mViewHolder.url.setText(currentItem.getUrl());
+            mViewHolder.url.setText(currentItem.getUrl());
             Log.e("my", currentItem.getNewsHeading() + " " + currentItem.getNewsDesc() + " " + currentItem.getAuthor() + " "
                     + currentItem.getDateTime() + " " + currentItem.getUrl());
             return convertView;
         }
-            private class MyViewHolder {
-                TextView heading, desc, author, date, url ;
+        private class MyViewHolder {
+            TextView heading, desc, author, date, url ;
 
-                public MyViewHolder(View item) {
-                    heading = (TextView) item.findViewById(R.id.heading);
-                    desc = (TextView) item.findViewById(R.id.desc);
-                    author = (TextView) item.findViewById(R.id.author);
-                    date = (TextView) item.findViewById(R.id.datetime);
-                    url = (TextView) item.findViewById(R.id.url);
-                }
+            private MyViewHolder(View item) {
+                heading = (TextView) item.findViewById(R.id.heading);
+                desc = (TextView) item.findViewById(R.id.desc);
+                author = (TextView) item.findViewById(R.id.author);
+                date = (TextView) item.findViewById(R.id.datetime);
+                url = (TextView) item.findViewById(R.id.url);
             }
         }
+    }
 
 
     @Override
     protected void onResume() {
-           super.onResume();
-      jsonParser();
+        super.onResume();
+        jsonParser();
         addClickListener();
     }
 }
