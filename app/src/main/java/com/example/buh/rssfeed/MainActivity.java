@@ -144,8 +144,7 @@ public class MainActivity extends AppCompatActivity  {
             mViewHolder.author.setText(currentItem.getAuthor());
             mViewHolder.date.setText(currentItem.getDateTime());
             mViewHolder.url.setText(currentItem.getUrl());
-            Log.e("my", currentItem.getNewsHeading() + " " + currentItem.getNewsDesc() + " " + currentItem.getAuthor() + " "
-                    + currentItem.getDateTime() + " " + currentItem.getUrl());
+           
             return convertView;
         }
         private class MyViewHolder {
