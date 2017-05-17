@@ -1,8 +1,5 @@
 package com.example.buh.rssfeed;
 
-/**
- * Created by Buh on 23.03.2017.
- */
 
 public class NewsItem {
     private String newsHeading;

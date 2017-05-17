@@ -4,9 +4,7 @@ import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
-/**
- * Created by Buh on 24.04.2017.
- */
+
 
 public class FeedContract {
     private FeedContract() {

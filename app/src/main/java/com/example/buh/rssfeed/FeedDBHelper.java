@@ -6,10 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-/**
- * Created by Buh on 24.04.2017.
- */
-
 public class FeedDBHelper {
     FeedDatabase openHelper;
    private SQLiteDatabase db;
