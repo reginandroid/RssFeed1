@@ -38,10 +38,10 @@ public class MainActivity extends AppCompatActivity  {
     private static final String TAG_AUTHOR = "author";
     private static final String TAG_PUBLISHEDAT = "publishedAt";
     private static final String TAG_URL = "url";
-
+    CustomAdapter adapter;
     Context ctx;
     private List<NewsItem> newsFeed = new ArrayList<>();
-    CustomAdapter adapter;
+FeedDBHelper feedDBHelper;
     ListView lv;
 
     @Override
@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity  {
 
         lv = (ListView) findViewById(R.id.list);
         jsonParser();
+
         addClickListener();
         adapter = new CustomAdapter();
         lv.setAdapter(adapter);
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity  {
 
                         newsFeed.add(new NewsItem(title, description, author, dateTime, url));
 
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -96,7 +98,7 @@ public class MainActivity extends AppCompatActivity  {
 
         });
         request.setRetryPolicy(new DefaultRetryPolicy(
-                20000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                5000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
         ));
         queue.add(request);
     }
@@ -167,4 +169,5 @@ public class MainActivity extends AppCompatActivity  {
         jsonParser();
         addClickListener();
     }
+
 }
