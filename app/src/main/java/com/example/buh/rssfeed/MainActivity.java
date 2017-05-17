@@ -29,9 +29,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-
-
 public class MainActivity extends AppCompatActivity  {
     private static final String TAG_TITLE = "title";
     private static final String TAG_DESCRIPTION = "description";
