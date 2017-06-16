@@ -3,21 +3,50 @@ package com.example.buh.rssfeed;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CursorAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.security.KeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,9 +54,20 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
 
 public class MainActivity extends AppCompatActivity  {
     private static final String TAG_TITLE = "title";
@@ -35,32 +75,39 @@ public class MainActivity extends AppCompatActivity  {
     private static final String TAG_AUTHOR = "author";
     private static final String TAG_PUBLISHEDAT = "publishedAt";
     private static final String TAG_URL = "url";
+    private static final String TAG_IMAGE_URL = "urlToImage";
     CustomAdapter adapter;
-    Context ctx;
-    private List<NewsItem> newsFeed = new ArrayList<>();
-FeedDBHelper feedDBHelper;
+    private ArrayList<NewsItem> newsFeed;
+    ArrayList<NewsItem> listforadapter;
+    FeedDBHelper feedDBHelper;
     ListView lv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        (new NukeSSLCerts()).nuke();
+        feedDBHelper = new FeedDBHelper(this);
+jsonParser();
+        newsFeed =feedDBHelper.getArticleList();
+        adapter = new CustomAdapter(this, newsFeed);
 
         lv = (ListView) findViewById(R.id.list);
-        jsonParser();
-
-        addClickListener();
-        adapter = new CustomAdapter();
         lv.setAdapter(adapter);
-    }
-    public void jsonParser() {
+        addClickListener();
 
+    }
+
+    public ArrayList<NewsItem> jsonParser() {
+
+   final ArrayList<NewsItem> list =  new ArrayList<>();
         RequestQueue queue = Volley.newRequestQueue(this);
-        final JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, "https://newsapi.org/v1/articles?source=the-next-web&sortBy=latest&apiKey=264e1f7afdff497aaaa6458de9bab1de",
+        final JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, "https://newsapi.org/v1/articles?source=the-next-web&sortBy=latest&apiKey=4e5bfbc64a4f4064991cd38068c8228b",
                 null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
+
                     JSONArray articlesItem = response.getJSONArray("articles");
                     for (int i = 0; i < articlesItem.length(); i++) {
                         JSONObject item = articlesItem.getJSONObject(i);
@@ -70,14 +117,14 @@ FeedDBHelper feedDBHelper;
                         String author = item.getString(TAG_AUTHOR);
                         String dateTime = item.getString(TAG_PUBLISHEDAT);
                         String url = item.getString(TAG_URL);
-                        Log.e("my", title+ " " + description + " " + author + " " + dateTime+ " "+url);
+                        String imageurl = item.getString(TAG_IMAGE_URL);
+                        Log.d("my", title+ " " + description + " " + author + " " + dateTime+ " "+url + " "+ imageurl);
 
+                        list.add(new NewsItem(title, description, author, dateTime, url, imageurl ));}
 
+                    feedDBHelper.saveArticleItem(list);
+Log.d("my", feedDBHelper.getArticleList().get(1).getNewsHeading().toString() );
 
-                        newsFeed.add(new NewsItem(title, description, author, dateTime, url));
-
-
-                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -90,14 +137,16 @@ FeedDBHelper feedDBHelper;
             public void onErrorResponse(VolleyError error) {
 
 
-                Log.e("mylog", error.toString());
+                Log.d("mylog", error.toString());
             }
 
         });
         request.setRetryPolicy(new DefaultRetryPolicy(
                 5000, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
         ));
+
         queue.add(request);
+return list;
     }
     private void addClickListener() {
         lv = (ListView) findViewById(R.id.list);
@@ -117,12 +166,15 @@ FeedDBHelper feedDBHelper;
 
     }
 
+
+
+
     public class CustomAdapter extends ArrayAdapter<NewsItem> {
-        private CustomAdapter() {
 
-            super(MainActivity.this, R.layout.item_list, newsFeed);
+        private CustomAdapter(Context context, ArrayList<NewsItem> arrayList) {
+            super(context, 0, arrayList);
+
         }
-
         @Override
         @NonNull
         @SuppressWarnings("NullableProblems")
@@ -133,38 +185,72 @@ FeedDBHelper feedDBHelper;
                 mViewHolder = new MyViewHolder(convertView);
                 convertView.setTag(mViewHolder);
             } else {
+                notifyDataSetChanged();
                 mViewHolder = (MyViewHolder) convertView.getTag();
             }
 
-            NewsItem currentItem = newsFeed.get(position);
+            NewsItem currentItem = getItem(position);
 
             mViewHolder.heading.setText(currentItem.getNewsHeading());
             mViewHolder.desc.setText(currentItem.getNewsDescSmall());
             mViewHolder.author.setText(currentItem.getAuthor());
             mViewHolder.date.setText(currentItem.getDateTime());
             mViewHolder.url.setText(currentItem.getUrl());
-
+            Picasso.with(MainActivity.this).load(currentItem.getImageurl()).into(mViewHolder.image);
             return convertView;
         }
         private class MyViewHolder {
             TextView heading, desc, author, date, url ;
-
+            ImageView image;
             private MyViewHolder(View item) {
                 heading = (TextView) item.findViewById(R.id.heading);
                 desc = (TextView) item.findViewById(R.id.desc);
                 author = (TextView) item.findViewById(R.id.author);
                 date = (TextView) item.findViewById(R.id.datetime);
                 url = (TextView) item.findViewById(R.id.url);
+                image = (ImageView)item.findViewById(R.id.image);
             }
         }
     }
 
+protected void  onDestroy(){
+    feedDBHelper.deleteDB();
+    super.onDestroy();
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        jsonParser();
-        addClickListener();
+
+
+}
+    public static class NukeSSLCerts {
+        protected static final String TAG = "NukeSSLCerts";
+
+        public static void nuke() {
+            try {
+                TrustManager[] trustAllCerts = new TrustManager[] {
+                        new X509TrustManager() {
+                            public X509Certificate[] getAcceptedIssuers() {
+                                X509Certificate[] myTrustedAnchors = new X509Certificate[0];
+                                return myTrustedAnchors;
+                            }
+
+                            @Override
+                            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+                            @Override
+                            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                        }
+                };
+
+                SSLContext sc = SSLContext.getInstance("SSL");
+                sc.init(null, trustAllCerts, new SecureRandom());
+                HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+                HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+                    @Override
+                    public boolean verify(String arg0, SSLSession arg1) {
+                        return true;
+                    }
+                });
+            } catch (Exception e) {
+            }
+        }
     }
-
 }
