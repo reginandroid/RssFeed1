@@ -185,7 +185,7 @@ return list;
                 mViewHolder = new MyViewHolder(convertView);
                 convertView.setTag(mViewHolder);
             } else {
-                notifyDataSetChanged();
+            
                 mViewHolder = (MyViewHolder) convertView.getTag();
             }
 
