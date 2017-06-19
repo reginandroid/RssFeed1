@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity  {
     private static final String TAG_IMAGE_URL = "urlToImage";
     CustomAdapter adapter;
     private ArrayList<NewsItem> newsFeed;
-    ArrayList<NewsItem> listforadapter;
+
     FeedDBHelper feedDBHelper;
     ListView lv;
 
@@ -89,16 +89,20 @@ public class MainActivity extends AppCompatActivity  {
         (new NukeSSLCerts()).nuke();
         feedDBHelper = new FeedDBHelper(this);
 jsonParser();
-        newsFeed =feedDBHelper.getArticleList();
-        adapter = new CustomAdapter(this, newsFeed);
+        ArrayList<NewsItem> listforadapter = feedDBHelper.getArticleList();
+        adapter = new CustomAdapter(this, listforadapter) ;
 
         lv = (ListView) findViewById(R.id.list);
         lv.setAdapter(adapter);
         addClickListener();
 
     }
+public  void onResume(){
+    super.onResume();
 
-    public ArrayList<NewsItem> jsonParser() {
+    lv.setAdapter(adapter);
+}
+    public void jsonParser() {
 
    final ArrayList<NewsItem> list =  new ArrayList<>();
         RequestQueue queue = Volley.newRequestQueue(this);
@@ -123,7 +127,7 @@ jsonParser();
                         list.add(new NewsItem(title, description, author, dateTime, url, imageurl ));}
 
                     feedDBHelper.saveArticleItem(list);
-Log.d("my", feedDBHelper.getArticleList().get(1).getNewsHeading().toString() );
+Log.d("my", feedDBHelper.getArticleList().get(0).getNewsHeading().toString() );
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -146,7 +150,7 @@ Log.d("my", feedDBHelper.getArticleList().get(1).getNewsHeading().toString() );
         ));
 
         queue.add(request);
-return list;
+
     }
     private void addClickListener() {
         lv = (ListView) findViewById(R.id.list);
@@ -156,7 +160,7 @@ return list;
                                   {
                                       @Override
                                       public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                                          NewsItem currentItem = newsFeed.get(i);
+                                          NewsItem currentItem = feedDBHelper.getArticleList().get(i);
                                           Intent intent = new Intent(Intent.ACTION_VIEW);
                                           intent.setData(Uri.parse(currentItem.getUrl()));
                                           startActivity(intent);
@@ -170,10 +174,10 @@ return list;
 
 
     public class CustomAdapter extends ArrayAdapter<NewsItem> {
-
+ArrayList<NewsItem> list;
         private CustomAdapter(Context context, ArrayList<NewsItem> arrayList) {
-            super(context, 0, arrayList);
-
+            super(context, R.layout.item_list, arrayList);
+this.list = arrayList;
         }
         @Override
         @NonNull
@@ -181,15 +185,15 @@ return list;
         public View getView(int position, View convertView, ViewGroup parent)  {
             MyViewHolder mViewHolder;
             if (convertView == null) {
-                convertView = getLayoutInflater().inflate(R.layout.item_list, parent, false);
+                convertView = getLayoutInflater().inflate(R.layout.item_list, null);
                 mViewHolder = new MyViewHolder(convertView);
                 convertView.setTag(mViewHolder);
             } else {
-            
+
                 mViewHolder = (MyViewHolder) convertView.getTag();
             }
 
-            NewsItem currentItem = getItem(position);
+            NewsItem currentItem = list.get(position);
 
             mViewHolder.heading.setText(currentItem.getNewsHeading());
             mViewHolder.desc.setText(currentItem.getNewsDescSmall());
@@ -213,7 +217,7 @@ return list;
         }
     }
 
-protected void  onDestroy(){
+protected void onDestroy(){
     feedDBHelper.deleteDB();
     super.onDestroy();
 
