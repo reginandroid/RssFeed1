@@ -29,18 +29,18 @@ public class FeedContract {
 
         public static final String TABLE_NAME = "article";
 
+        public static final String _ID = "_id";
 
+        public static final String COLUMN_NAME_TITLE = " title";
 
-        public static final String COLUMN_NAME_TITLE = "title";
+        public static final String COLUMN_NAME_DESCRIPTION = " description";
 
-        public static final String COLUMN_NAME_DESCRIPTION = "description";
+        public static final String COLUMN_NAME_AUTHOR = " author";
 
-        public static final String COLUMN_NAME_AUTHOR = "author";
+        public static final String COLUMN_NAME_DATETIME = " datetime";
 
-        public static final String COLUMN_NAME_DATETIME = "datetime";
+        public static final String COLUMN_NAME_URL = " url";
 
-        public static final String COLUMN_NAME_URL = "url";
-
-
+        public static final String COLUMN_IMAGE_URL = " imageurl";
     }
 }

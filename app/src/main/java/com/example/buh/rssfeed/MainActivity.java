@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity  {
     private static final String TAG_IMAGE_URL = "urlToImage";
     CustomAdapter adapter;
     private ArrayList<NewsItem> newsFeed;
-
+Context context;
     FeedDBHelper feedDBHelper;
     ListView lv;
 
@@ -88,20 +88,25 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
         (new NukeSSLCerts()).nuke();
         feedDBHelper = new FeedDBHelper(this);
-jsonParser();
+
+        jsonParser();
+
         ArrayList<NewsItem> listforadapter = feedDBHelper.getArticleList();
         adapter = new CustomAdapter(this, listforadapter) ;
 
-        lv = (ListView) findViewById(R.id.list);
+                lv = (ListView) findViewById(R.id.list);
         lv.setAdapter(adapter);
-        addClickListener();
+        adapter.notifyDataSetChanged();
+
+
+            addClickListener();
+    }
+    public void onResume(){
+        super.onResume();
+
 
     }
-public  void onResume(){
-    super.onResume();
 
-    lv.setAdapter(adapter);
-}
     public void jsonParser() {
 
    final ArrayList<NewsItem> list =  new ArrayList<>();
@@ -124,10 +129,12 @@ public  void onResume(){
                         String imageurl = item.getString(TAG_IMAGE_URL);
                         Log.d("my", title+ " " + description + " " + author + " " + dateTime+ " "+url + " "+ imageurl);
 
-                        list.add(new NewsItem(title, description, author, dateTime, url, imageurl ));}
-
+                        list.add(new NewsItem(title, description, author, dateTime, url, imageurl ));
+                   }
+                   if (feedDBHelper.getArticleList().size()>0){feedDBHelper.deleteAllrows();}
                     feedDBHelper.saveArticleItem(list);
-Log.d("my", feedDBHelper.getArticleList().get(0).getNewsHeading().toString() );
+
+Log.d("my",feedDBHelper.getArticleList().size() +  feedDBHelper.getArticleList().get(0).getNewsHeading().toString() );
 
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -179,13 +186,14 @@ ArrayList<NewsItem> list;
             super(context, R.layout.item_list, arrayList);
 this.list = arrayList;
         }
+
         @Override
         @NonNull
         @SuppressWarnings("NullableProblems")
         public View getView(int position, View convertView, ViewGroup parent)  {
             MyViewHolder mViewHolder;
             if (convertView == null) {
-                convertView = getLayoutInflater().inflate(R.layout.item_list, null);
+                convertView = getLayoutInflater().inflate(R.layout.item_list, parent, false);
                 mViewHolder = new MyViewHolder(convertView);
                 convertView.setTag(mViewHolder);
             } else {
@@ -218,8 +226,9 @@ this.list = arrayList;
     }
 
 protected void onDestroy(){
-    feedDBHelper.deleteDB();
+
     super.onDestroy();
+
 
 
 
